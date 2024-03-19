@@ -1,4 +1,8 @@
 import numpy as np
+from metrics import precision_recall, print_precision_recall
+from metric_classification import knn
+from distances import euclidean_dist, taxicab_dist
+from crossvalidation import loocv
 
 
 def train_test_split(X, y, ratio=0.8):
@@ -20,21 +24,22 @@ def train_test_split(X, y, ratio=0.8):
 
 
 if __name__ == '__main__':
-    # Here we load data from the csv file.
     wines = np.genfromtxt('wine.csv', delimiter=',')
-    # Here the data is split into objects and classes
-    # to process them separately. Note that an object and
-    # its corresponding class will have the same index.
+
     X, y = wines[:, 1:], np.array(wines[:, 0], dtype=np.int32)
-    # Here we call our function to look at the result.
+
     X_train, y_train, X_test, y_test = train_test_split(X, y, 0.6)
-    # It is convenient to add visualization (a console output at least)
-    # for each of the functions you add in a new step. Like this:
-    print("X_train: ", "\n")
-    print(X_train)
-    print("y_train: ")
-    print(y_train)
-    print("X_test", "\n")
-    print(X_test)
-    print("y_test", "\n")
-    print(y_test)
+    y_euclidean_predicted = knn(X_train, y_train, X_test, 5, euclidean_dist)
+    print_precision_recall(precision_recall(y_euclidean_predicted, y_test))
+
+    euclidean_opt = loocv(X_train, y_train, euclidean_dist)
+    taxicab_opt = loocv(X_train, y_train, taxicab_dist)
+
+    print("optimal euclidian k = " + str(euclidean_opt))
+    print("optimal taxicab k = " + str(taxicab_opt))
+
+    y_euclidean_predicted = knn(X_train, y_train, X_test, euclidean_opt, euclidean_dist)
+    print_precision_recall(precision_recall(y_euclidean_predicted, y_test))
+
+    y_taxicab_predicted = knn(X_train, y_train, X_test, taxicab_opt, euclidean_dist)
+    print_precision_recall(precision_recall(y_taxicab_predicted, y_test))
